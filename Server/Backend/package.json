@@ -1,0 +1,16 @@
+{
+  "name": "rat-server",
+  "version": "1.0.0",
+  "description": "Remote Administration Tool - Servidor",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "ws": "8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.4"
+  }
+}

